@@ -3,7 +3,10 @@ const createError = require('http-errors');
 const morgan = require('morgan');
 const cors = require('cors');
 const connectDB = require('./config/db');
-
+const {
+  notFoundHandler,
+  errorHandler,
+} = require("./middlewares/errorHandler");
 
 
 require('dotenv').config();
@@ -28,17 +31,11 @@ app.get('/', async (req, res, next) => {
 
 app.use('/api', require('./routes/api.route'));
 
-app.use((req, res, next) => {
-  next(createError.NotFound());
-});
+// Middleware to generate 404 error for undefined routes
+app.use(notFoundHandler);
 
-app.use((err, req, res, next) => {
-  res.status(err.status || 500);
-  res.send({
-    status: err.status || 500,
-    message: err.message,
-  });
-});
+// Error handling middleware
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`🚀 @ http://localhost:${PORT}`));
