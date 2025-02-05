@@ -8,17 +8,24 @@ const {
   logoutValidator 
 } = require('../validators/authValidator');
 const { validateRequest } = require('../middlewares/validateRequest');
-
+const { 
+  signup, 
+  login, 
+  logout, 
+  forgotPassword, 
+  resetPassword, 
+  verifyEmail 
+} = require('../controllers/authController');
 
 // Health check
 router.get('/', (req, res) => res.send({ message: 'Welcome To DSHELF API' }));
 
 // Auth Routes
-router.post('/signup', signupValidator, validateRequest, authController.signup);
-router.post('/login', loginValidator, validateRequest, authController.login);
-router.post('/forgot-password', forgotPasswordValidator, validateRequest, authController.forgotPassword);
-router.post('/reset-password', resetPasswordValidator, validateRequest, authController.resetPassword);
-router.post('/logout', authenticate, logoutValidator, validateRequest, authController.logout);
+router.post('/signup', signupValidator, validateRequest, signup);
+router.post('/login', loginValidator, validateRequest, login);
+router.post('/forgot-password', forgotPasswordValidator, validateRequest, forgotPassword);
+router.post('/reset-password', resetPasswordValidator, validateRequest, resetPassword);
+router.post('/logout', authenticate, logoutValidator, validateRequest, logout);
 router.get('/verify-email/:token', verifyEmail);
 
 
