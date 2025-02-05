@@ -26,7 +26,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(morgan('dev'));
 
 app.get('/', async (req, res, next) => {
-  res.send({ message: 'Awesome it works 🐻' });
+  res.send({ message: 'API is working 🚀' });
 });
 
 app.use('/api', require('./routes/api.route'));

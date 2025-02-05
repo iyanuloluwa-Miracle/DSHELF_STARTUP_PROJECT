@@ -2,29 +2,24 @@ const router = require('express').Router();
 const { authenticate } = require('../middlewares/authMiddleware');
 const { 
   signupValidator, 
-  resetPasswordValidator 
+  loginValidator, 
+  forgotPasswordValidator, 
+  resetPasswordValidator, 
+  logoutValidator 
 } = require('../validators/authValidator');
-const { validationResult } = require('express-validator');
+const { validateRequest } = require('../middlewares/validateRequest');
 
-// Validation middleware
-const validateRequest = (req, res, next) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-  }
-  next();
-};
 
-router.get('/', async (req, res, next) => {
-  res.send({ message: 'Ok api is working 🚀' });
-});
+// Health check
+router.get('/', (req, res) => res.send({ message: 'Welcome To DSHELF API' }));
 
-// Route definitions
-router.post('/signup', signupValidator, validateRequest, signup);
-router.post('/login', login);
-router.post('/logout', authenticate, logout);
-router.post('/forgot-password', forgotPassword);
-router.post('/reset-password', resetPasswordValidator, validateRequest, resetPassword);
+// Auth Routes
+router.post('/signup', signupValidator, validateRequest, authController.signup);
+router.post('/login', loginValidator, validateRequest, authController.login);
+router.post('/forgot-password', forgotPasswordValidator, validateRequest, authController.forgotPassword);
+router.post('/reset-password', resetPasswordValidator, validateRequest, authController.resetPassword);
+router.post('/logout', authenticate, logoutValidator, validateRequest, authController.logout);
 router.get('/verify-email/:token', verifyEmail);
+
 
 module.exports = router;
