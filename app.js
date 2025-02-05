@@ -1,9 +1,23 @@
 const express = require('express');
 const createError = require('http-errors');
 const morgan = require('morgan');
+const cors = require('cors');
+const connectDB = require('./config/db');
+
+
+
 require('dotenv').config();
 
 const app = express();
+
+
+
+// Connect to MongoDB
+connectDB();
+
+// Middleware
+app.use(cors());
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(morgan('dev'));
