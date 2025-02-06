@@ -1,19 +1,29 @@
-const mongoose = require('mongoose');
-const { MONGODB_URI } = require('./env');
+const { Sequelize } = require('sequelize');
+const { POSTGRES_URI } = require('./env');
+
+const sequelize = new Sequelize(POSTGRES_URI, {
+    dialect: 'postgres',
+    logging: false,
+    dialectOptions: {
+        ssl: {
+            require: true,
+            rejectUnauthorized: false
+        }
+    }
+});
 
 const connectDB = async () => {
     try {
-        await mongoose.connect(MONGODB_URI, {
-            useNewUrlParser: true,
-            useUnifiedTopology: true,
-            ssl:false
-            
-        });
-        console.log('MongoDB connected successfully');
+        await sequelize.authenticate();
+        await sequelize.sync(); // This will create tables if they don't exist
+        console.log('PostgreSQL connected successfully');
     } catch (error) {
-        console.error('MongoDB connection error:', error);
+        console.error('PostgreSQL connection error:', error);
         process.exit(1);
     }
 };
 
-module.exports = connectDB;
+module.exports = { 
+    sequelize, 
+    connectDB 
+};
