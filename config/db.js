@@ -1,6 +1,3 @@
-
-
-// config/db.js
 const mongoose = require('mongoose');
 const { MONGODB_URI } = require('./env');
 
@@ -8,7 +5,9 @@ const connectDB = async () => {
     try {
         await mongoose.connect(MONGODB_URI, {
             useNewUrlParser: true,
-            useUnifiedTopology: true
+            useUnifiedTopology: true,
+            ssl: true, // Enforce SSL
+           
         });
         console.log('MongoDB connected successfully');
     } catch (error) {
