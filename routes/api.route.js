@@ -21,12 +21,12 @@ const {
 router.get('/', (req, res) => res.send({ message: 'Welcome To DSHELF API' }));
 
 // Auth Routes
-router.post('/signup', signupValidator, validateRequest, signup);
-router.post('/login', loginValidator, validateRequest, login);
-router.post('/forgot-password', forgotPasswordValidator, validateRequest, forgotPassword);
-router.post('/reset-password', resetPasswordValidator, validateRequest, resetPassword);
-router.post('/logout', authenticate, logoutValidator, validateRequest, logout);
-router.get('/verify-email/:token', verifyEmail);
+router.post('/auth/signup', signupValidator, validateRequest, signup);
+router.post('/auth/login', loginValidator, validateRequest, login);
+router.post('/auth/forgot-password', forgotPasswordValidator, validateRequest, forgotPassword);
+router.post('/auth/reset-password', resetPasswordValidator, validateRequest, resetPassword);
+router.post('/auth/logout', authenticate, logoutValidator, validateRequest, logout);
+router.get('/auth/verify-email/:token', verifyEmail);
 
 
 module.exports = router;
