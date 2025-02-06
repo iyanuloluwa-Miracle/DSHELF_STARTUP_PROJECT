@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const { JWT_SECRET } = require('../config/env');
 const { sendVerificationEmail, sendResetPasswordEmail } = require('../utils/emailSender');
+const { Op } = require('sequelize');
 
 const createUser = async (userData) => {
     const { password, confirm_password, ...otherData } = userData;
@@ -12,25 +13,30 @@ const createUser = async (userData) => {
         throw new Error('Passwords do not match');
     }
 
-    const existingUser = await User.findOne({ email: userData.email });
+    const existingUser = await User.findOne({ 
+        where: { email: userData.email } 
+    });
+    
     if (existingUser) {
         throw new Error('User already exists');
     }
 
     const hashedPassword = await bcrypt.hash(password, 12);
-    const user = new User({
+    const user = await User.create({
         ...otherData,
         password: hashedPassword,
         confirm_password: hashedPassword
     });
 
-    await user.save();
     await sendVerificationEmail(user);
     return user;
 };
 
 const loginUser = async (email, password) => {
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ 
+        where: { email } 
+    });
+
     if (!user) {
         throw new Error('Invalid credentials');
     }
@@ -45,14 +51,14 @@ const loginUser = async (email, password) => {
     }
 
     const token = jwt.sign(
-        { userId: user._id, email: user.email },
+        { userId: user.id, email: user.email },
         JWT_SECRET,
         { expiresIn: '24h' }
     );
 
     return { 
         user: {
-            id: user._id,
+            id: user.id,
             firstName: user.firstName,
             lastName: user.lastName,
             email: user.email,
@@ -64,7 +70,10 @@ const loginUser = async (email, password) => {
 };
 
 const initiatePasswordReset = async (email) => {
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ 
+        where: { email } 
+    });
+
     if (!user) {
         throw new Error('User not found');
     }
@@ -74,7 +83,7 @@ const initiatePasswordReset = async (email) => {
         .createHash('sha256')
         .update(resetToken)
         .digest('hex');
-    user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
+    user.resetPasswordExpires = new Date(Date.now() + 3600000); // 1 hour
     
     await user.save();
     await sendResetPasswordEmail(email, resetToken);
@@ -92,8 +101,12 @@ const resetPassword = async (token, newPassword, confirm_password) => {
         .digest('hex');
 
     const user = await User.findOne({
-        resetPasswordToken: hashedToken,
-        resetPasswordExpires: { $gt: Date.now() }
+        where: {
+            resetPasswordToken: hashedToken,
+            resetPasswordExpires: {
+                [Op.gt]: new Date()
+            }
+        }
     });
 
     if (!user) {
@@ -102,14 +115,14 @@ const resetPassword = async (token, newPassword, confirm_password) => {
 
     user.password = await bcrypt.hash(newPassword, 12);
     user.confirm_password = user.password;
-    user.resetPasswordToken = undefined;
-    user.resetPasswordExpires = undefined;
+    user.resetPasswordToken = null;
+    user.resetPasswordExpires = null;
     await user.save();
     return true;
 };
 
 const verifyEmail = async (token) => {
-    const user = await User.findById(token);
+    const user = await User.findByPk(token);
     if (!user) {
         throw new Error('Invalid verification token');
     }

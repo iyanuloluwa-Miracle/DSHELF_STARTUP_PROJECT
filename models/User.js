@@ -1,17 +1,54 @@
-const mongoose = require("mongoose");
+const { DataTypes } = require('sequelize');
+const { sequelize } = require('../config/db');
 
-const UserSchema = new mongoose.Schema({
-  firstName: { type: String, required: true },
-  lastName: { type: String, required: true },
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
-  confirm_password: { type: String, required: true },
-  country: { type: String, required: true },
-  city: { type: String, required: true },
-  isVerified: { type: Boolean, default: false },
-  resetPasswordToken: { type: String, default: null },
-  resetPasswordExpires: { type: Date, default: null },
-  createdAt: { type: Date, default: Date.now },
+const User = sequelize.define('User', {
+    firstName: {
+        type: DataTypes.STRING,
+        allowNull: false
+    },
+    lastName: {
+        type: DataTypes.STRING,
+        allowNull: false
+    },
+    email: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        unique: true,
+        validate: {
+            isEmail: true
+        }
+    },
+    password: {
+        type: DataTypes.STRING,
+        allowNull: false
+    },
+    confirm_password: {
+        type: DataTypes.STRING,
+        allowNull: false
+    },
+    country: {
+        type: DataTypes.STRING,
+        allowNull: false
+    },
+    city: {
+        type: DataTypes.STRING,
+        allowNull: false
+    },
+    isVerified: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false
+    },
+    resetPasswordToken: {
+        type: DataTypes.STRING,
+        defaultValue: null
+    },
+    resetPasswordExpires: {
+        type: DataTypes.DATE,
+        defaultValue: null
+    }
+}, {
+    tableName: 'users',
+    timestamps: true
 });
 
-module.exports = mongoose.model("User", UserSchema);
+module.exports = User;
