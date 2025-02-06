@@ -6,15 +6,22 @@ const { JWT_SECRET } = require('../config/env');
 const { sendVerificationEmail, sendResetPasswordEmail } = require('../utils/emailSender');
 
 const createUser = async (userData) => {
+    const { password, confirm_password, ...otherData } = userData;
+
+    if (password !== confirm_password) {
+        throw new Error('Passwords do not match');
+    }
+
     const existingUser = await User.findOne({ email: userData.email });
     if (existingUser) {
         throw new Error('User already exists');
     }
 
-    const hashedPassword = await bcrypt.hash(userData.password, 12);
+    const hashedPassword = await bcrypt.hash(password, 12);
     const user = new User({
-        ...userData,
-        password: hashedPassword
+        ...otherData,
+        password: hashedPassword,
+        confirm_password: hashedPassword
     });
 
     await user.save();
@@ -43,7 +50,17 @@ const loginUser = async (email, password) => {
         { expiresIn: '24h' }
     );
 
-    return { user, token };
+    return { 
+        user: {
+            id: user._id,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            email: user.email,
+            country: user.country,
+            city: user.city
+        }, 
+        token 
+    };
 };
 
 const initiatePasswordReset = async (email) => {
@@ -57,14 +74,18 @@ const initiatePasswordReset = async (email) => {
         .createHash('sha256')
         .update(resetToken)
         .digest('hex');
-    user.resetPasswordExpires = Date.now() + 3600000;
+    user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
     
     await user.save();
     await sendResetPasswordEmail(email, resetToken);
     return true;
 };
 
-const resetPassword = async (token, newPassword) => {
+const resetPassword = async (token, newPassword, confirm_password) => {
+    if (newPassword !== confirm_password) {
+        throw new Error('Passwords do not match');
+    }
+
     const hashedToken = crypto
         .createHash('sha256')
         .update(token)
@@ -80,6 +101,7 @@ const resetPassword = async (token, newPassword) => {
     }
 
     user.password = await bcrypt.hash(newPassword, 12);
+    user.confirm_password = user.password;
     user.resetPasswordToken = undefined;
     user.resetPasswordExpires = undefined;
     await user.save();

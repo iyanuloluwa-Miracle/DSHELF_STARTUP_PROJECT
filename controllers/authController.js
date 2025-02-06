@@ -1,83 +1,174 @@
+// controllers/authController.js
 const authService = require('../services/authService');
+const { 
+    successResponse, 
+    errorResponse, 
+    validationErrorResponse,
+    HttpStatus 
+} = require('../helpers/responses');
 
 const signup = async (req, res) => {
     try {
+        const { 
+            firstName, 
+            lastName, 
+            email, 
+            password, 
+            confirm_password, 
+            country, 
+            city 
+        } = req.body;
+
+        // Validate required fields
+        if (!firstName || !lastName || !email || !password || !confirm_password || !country || !city) {
+            return res.status(HttpStatus.BAD_REQUEST).json(
+                validationErrorResponse(
+                    'All fields are required',
+                    {
+                        general: 'Please fill in all required fields'
+                    }
+                )
+            );
+        }
+
         const user = await authService.createUser(req.body);
-        res.status(201).json({
-            message: 'User registered successfully. Please verify your email.'
-        });
+        
+        return res.status(HttpStatus.CREATED).json(
+            successResponse(
+                'User registered successfully. Please verify your email.',
+                { userId: user._id }
+            )
+        );
     } catch (error) {
-        res.status(400).json({ message: error.message });
+        return res.status(HttpStatus.BAD_REQUEST).json(
+            errorResponse(error.message)
+        );
     }
 };
 
 const login = async (req, res) => {
     try {
         const { email, password } = req.body;
+
+        if (!email || !password) {
+            return res.status(HttpStatus.BAD_REQUEST).json(
+                validationErrorResponse(
+                    'Email and password are required',
+                    {
+                        general: 'Please provide both email and password'
+                    }
+                )
+            );
+        }
+
         const { user, token } = await authService.loginUser(email, password);
         
         res.cookie('token', token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            maxAge: 24 * 60 * 60 * 1000
+            maxAge: 24 * 60 * 60 * 1000 // 24 hours
         });
 
-        res.json({
-            message: 'Login successful',
-            user: {
-                id: user._id,
-                firstName: user.firstName,
-                lastName: user.lastName,
-                email: user.email,
-                country: user.country,
-                city: user.city
-            },
-            token
-        });
+        return res.status(HttpStatus.OK).json(
+            successResponse('Login successful', { user, token })
+        );
     } catch (error) {
-        res.status(401).json({ message: error.message });
+        return res.status(HttpStatus.UNAUTHORIZED).json(
+            errorResponse(error.message)
+        );
     }
 };
 
 const logout = (req, res) => {
     res.clearCookie('token');
-    res.json({ message: 'Logout successful' });
+    return res.status(HttpStatus.OK).json(
+        successResponse('Logout successful')
+    );
 };
 
 const forgotPassword = async (req, res) => {
     try {
-        await authService.initiatePasswordReset(req.body.email);
-        res.json({ message: 'Password reset email sent successfully' });
+        const { email } = req.body;
+
+        if (!email) {
+            return res.status(HttpStatus.BAD_REQUEST).json(
+                validationErrorResponse(
+                    'Email is required',
+                    {
+                        email: 'Please provide an email address'
+                    }
+                )
+            );
+        }
+
+        await authService.initiatePasswordReset(email);
+        return res.status(HttpStatus.OK).json(
+            successResponse('Password reset email sent successfully')
+        );
     } catch (error) {
-        res.status(400).json({ message: error.message });
+        return res.status(HttpStatus.BAD_REQUEST).json(
+            errorResponse(error.message)
+        );
     }
 };
 
 const resetPassword = async (req, res) => {
     try {
-        const { token, newPassword } = req.body;
-        await authService.resetPassword(token, newPassword);
-        res.json({ message: 'Password reset successful' });
+        const { token, newPassword, confirm_password } = req.body;
+
+        if (!token || !newPassword || !confirm_password) {
+            return res.status(HttpStatus.BAD_REQUEST).json(
+                validationErrorResponse(
+                    'All fields are required',
+                    {
+                        general: 'Please provide token, new password and confirmation'
+                    }
+                )
+            );
+        }
+
+        await authService.resetPassword(token, newPassword, confirm_password);
+        return res.status(HttpStatus.OK).json(
+            successResponse('Password reset successful')
+        );
     } catch (error) {
-        res.status(400).json({ message: error.message });
+        return res.status(HttpStatus.BAD_REQUEST).json(
+            errorResponse(error.message)
+        );
     }
 };
 
 const verifyEmail = async (req, res) => {
     try {
-        await authService.verifyEmail(req.params.token);
-        res.json({ message: 'Email verified successfully' });
+        const { token } = req.params;
+
+        if (!token) {
+            return res.status(HttpStatus.BAD_REQUEST).json(
+                validationErrorResponse(
+                    'Verification token is required',
+                    {
+                        token: 'Please provide a verification token'
+                    }
+                )
+            );
+        }
+
+        await authService.verifyEmail(token);
+        return res.status(HttpStatus.OK).json(
+            successResponse('Email verified successfully')
+        );
     } catch (error) {
-        res.status(400).json({ message: error.message });
+        return res.status(HttpStatus.BAD_REQUEST).json(
+            errorResponse(error.message)
+        );
     }
 };
 
-
-module.exports ={
+module.exports = {
     signup,
     login,
     logout,
     forgotPassword,
     resetPassword,
     verifyEmail
-}
+};
