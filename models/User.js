@@ -38,6 +38,15 @@ const User = sequelize.define('User', {
         type: DataTypes.BOOLEAN,
         defaultValue: false
     },
+
+    verificationToken: {  // Add this field
+        type: DataTypes.STRING,
+        defaultValue: null
+    },
+    isVerified: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false
+    },
     resetPasswordToken: {
         type: DataTypes.STRING,
         defaultValue: null

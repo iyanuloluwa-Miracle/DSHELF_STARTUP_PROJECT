@@ -1,4 +1,3 @@
-// config/env.js
 require('dotenv').config();
 
 module.exports = {
@@ -9,5 +8,6 @@ module.exports = {
     EMAIL_PORT: process.env.EMAIL_PORT,
     EMAIL_USER: process.env.EMAIL_USER,
     EMAIL_PASS: process.env.EMAIL_PASS,
-    BASE_URL: process.env.BASE_URL || 'http://localhost:3000'
+    BASE_URL: process.env.BASE_URL || 'http://localhost:3000',
+    DB_SSL_CA: process.env.DB_SSL_CA ? process.env.DB_SSL_CA.replace(/\\n/g, '\n') : null
 };
