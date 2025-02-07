@@ -12,8 +12,7 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-exports.sendVerificationEmail = async (user) => {
-    const verificationToken = user._id.toString();
+exports.sendVerificationEmail = async (user, verificationToken) => {
     const verificationUrl = `${BASE_URL}/verify-email/${verificationToken}`;
 
     const mailOptions = {
@@ -31,7 +30,6 @@ exports.sendVerificationEmail = async (user) => {
 
     await transporter.sendMail(mailOptions);
 };
-
 exports.sendResetPasswordEmail = async (email, token) => {
     const resetUrl = `${BASE_URL}/reset-password/${token}`;
 

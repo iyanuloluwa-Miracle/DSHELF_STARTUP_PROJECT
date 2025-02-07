@@ -6,6 +6,7 @@ const { JWT_SECRET } = require('../config/env');
 const { sendVerificationEmail, sendResetPasswordEmail } = require('../utils/emailSender');
 const { Op } = require('sequelize');
 
+
 const createUser = async (userData) => {
     const { password, confirm_password, ...otherData } = userData;
 
@@ -21,14 +22,18 @@ const createUser = async (userData) => {
         throw new Error('User already exists');
     }
 
+    // Generate verification token
+    const verificationToken = crypto.randomBytes(32).toString('hex');
+
     const hashedPassword = await bcrypt.hash(password, 12);
     const user = await User.create({
         ...otherData,
         password: hashedPassword,
-        confirm_password: hashedPassword
+        confirm_password: hashedPassword,
+        verificationToken: verificationToken
     });
 
-    await sendVerificationEmail(user);
+    await sendVerificationEmail(user, verificationToken);  // Pass the token
     return user;
 };
 
@@ -120,22 +125,23 @@ const resetPassword = async (token, newPassword, confirm_password) => {
     await user.save();
     return true;
 };
-
 const verifyEmail = async (token) => {
-    const user = await User.findByPk(token);
+    const user = await User.findOne({
+        where: {
+            verificationToken: token,
+            isVerified: false
+        }
+    });
+
     if (!user) {
         throw new Error('Invalid verification token');
     }
 
-    if (user.isVerified) {
-        throw new Error('Email already verified');
-    }
-
     user.isVerified = true;
+    user.verificationToken = null;
     await user.save();
     return true;
 };
-
 module.exports = {
     createUser,
     loginUser,
