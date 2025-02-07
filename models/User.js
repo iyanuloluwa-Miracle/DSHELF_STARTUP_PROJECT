@@ -9,6 +9,7 @@ const UserSchema = new mongoose.Schema({
   country: { type: String, required: true },
   city: { type: String, required: true },
   isVerified: { type: Boolean, default: false },
+  verificationToken: {type: String, required: false},
   resetPasswordToken: { type: String, default: null },
   resetPasswordExpires: { type: Date, default: null },
   createdAt: { type: Date, default: Date.now },

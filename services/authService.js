@@ -109,7 +109,7 @@ const resetPassword = async (token, newPassword, confirm_password) => {
 };
 
 const verifyEmail = async (token) => {
-    const user = await User.findById(token);
+    const user = await User.findOne({ verificationToken: token });
     if (!user) {
         throw new Error('Invalid verification token');
     }
@@ -119,9 +119,11 @@ const verifyEmail = async (token) => {
     }
 
     user.isVerified = true;
+    user.verificationToken = undefined; // Clear the verification token
     await user.save();
     return true;
 };
+
 
 module.exports = {
     createUser,
