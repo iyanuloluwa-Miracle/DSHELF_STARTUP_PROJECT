@@ -2,7 +2,7 @@ const express = require('express');
 const createError = require('http-errors');
 const morgan = require('morgan');
 const cors = require('cors');
-const { connectDB } = require('./config/db'); 
+const connectDB = require('./config/db');
 const {
   notFoundHandler,
   errorHandler,
@@ -37,5 +37,5 @@ app.use(notFoundHandler);
 // Error handling middleware
 app.use(errorHandler);
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 @ http://localhost:${PORT}`));

@@ -4,8 +4,6 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const { JWT_SECRET } = require('../config/env');
 const { sendVerificationEmail, sendResetPasswordEmail } = require('../utils/emailSender');
-const { Op } = require('sequelize');
-
 
 const createUser = async (userData) => {
     const { password, confirm_password, ...otherData } = userData;
@@ -14,34 +12,25 @@ const createUser = async (userData) => {
         throw new Error('Passwords do not match');
     }
 
-    const existingUser = await User.findOne({ 
-        where: { email: userData.email } 
-    });
-    
+    const existingUser = await User.findOne({ email: userData.email });
     if (existingUser) {
         throw new Error('User already exists');
     }
 
-    // Generate verification token
-    const verificationToken = crypto.randomBytes(32).toString('hex');
-
     const hashedPassword = await bcrypt.hash(password, 12);
-    const user = await User.create({
+    const user = new User({
         ...otherData,
         password: hashedPassword,
-        confirm_password: hashedPassword,
-        verificationToken: verificationToken
+        confirm_password: hashedPassword
     });
 
-    await sendVerificationEmail(user, verificationToken);  // Pass the token
+    await user.save();
+    await sendVerificationEmail(user);
     return user;
 };
 
 const loginUser = async (email, password) => {
-    const user = await User.findOne({ 
-        where: { email } 
-    });
-
+    const user = await User.findOne({ email });
     if (!user) {
         throw new Error('Invalid credentials');
     }
@@ -56,14 +45,14 @@ const loginUser = async (email, password) => {
     }
 
     const token = jwt.sign(
-        { userId: user.id, email: user.email },
+        { userId: user._id, email: user.email },
         JWT_SECRET,
         { expiresIn: '24h' }
     );
 
     return { 
         user: {
-            id: user.id,
+            id: user._id,
             firstName: user.firstName,
             lastName: user.lastName,
             email: user.email,
@@ -75,10 +64,7 @@ const loginUser = async (email, password) => {
 };
 
 const initiatePasswordReset = async (email) => {
-    const user = await User.findOne({ 
-        where: { email } 
-    });
-
+    const user = await User.findOne({ email });
     if (!user) {
         throw new Error('User not found');
     }
@@ -88,7 +74,7 @@ const initiatePasswordReset = async (email) => {
         .createHash('sha256')
         .update(resetToken)
         .digest('hex');
-    user.resetPasswordExpires = new Date(Date.now() + 3600000); // 1 hour
+    user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
     
     await user.save();
     await sendResetPasswordEmail(email, resetToken);
@@ -106,12 +92,8 @@ const resetPassword = async (token, newPassword, confirm_password) => {
         .digest('hex');
 
     const user = await User.findOne({
-        where: {
-            resetPasswordToken: hashedToken,
-            resetPasswordExpires: {
-                [Op.gt]: new Date()
-            }
-        }
+        resetPasswordToken: hashedToken,
+        resetPasswordExpires: { $gt: Date.now() }
     });
 
     if (!user) {
@@ -120,28 +102,27 @@ const resetPassword = async (token, newPassword, confirm_password) => {
 
     user.password = await bcrypt.hash(newPassword, 12);
     user.confirm_password = user.password;
-    user.resetPasswordToken = null;
-    user.resetPasswordExpires = null;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
     await user.save();
     return true;
 };
-const verifyEmail = async (token) => {
-    const user = await User.findOne({
-        where: {
-            verificationToken: token,
-            isVerified: false
-        }
-    });
 
+const verifyEmail = async (token) => {
+    const user = await User.findById(token);
     if (!user) {
         throw new Error('Invalid verification token');
     }
 
+    if (user.isVerified) {
+        throw new Error('Email already verified');
+    }
+
     user.isVerified = true;
-    user.verificationToken = null;
     await user.save();
     return true;
 };
+
 module.exports = {
     createUser,
     loginUser,
