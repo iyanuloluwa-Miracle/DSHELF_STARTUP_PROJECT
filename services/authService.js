@@ -121,7 +121,10 @@ const verifyEmail = async (token) => {
     user.isVerified = true;
     user.verificationToken = undefined; // Clear the verification token
     await user.save();
-    return true;
+    return {
+        success: true,
+        message: 'Email verified successfully'
+    };
 };
 
 

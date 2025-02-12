@@ -36,7 +36,7 @@ exports.sendVerificationEmail = async (user) => {
     user.verificationToken = verificationToken;
     await user.save();
 
-    const verificationUrl = `${BASE_URL}/verify-email/${verificationToken}`;
+    const verificationUrl = `${BASE_URL}/api/auth/verify-email/${verificationToken}`;
 
     const mailOptions = {
       from: EMAIL_USER,
@@ -60,20 +60,20 @@ exports.sendVerificationEmail = async (user) => {
   }
 };
 exports.sendResetPasswordEmail = async (email, token) => {
-  const resetUrl = `${BASE_URL}/reset-password/${token}`;
+  const resetUrl = `${process.env.FRONTEND_URL}/auth/login/reset-password/${token}`;
 
   const mailOptions = {
-    from: EMAIL_USER,
-    to: email,
-    subject: "Password Reset Request",
-    html: `
-            <h1>Password Reset</h1>
-            <p>You requested a password reset.</p>
-            <p>Click the link below to reset your password:</p>
-            <a href="${resetUrl}">Reset Password</a>
-            <p>This link will expire in 1 hour.</p>
-            <p>If you didn't request this, please ignore this email.</p>
-        `,
+      from: EMAIL_USER,
+      to: email,
+      subject: "Password Reset Request",
+      html: `
+          <h1>Password Reset</h1>
+          <p>You requested a password reset.</p>
+          <p>Click the link below to reset your password:</p>
+          <a href="${resetUrl}">Reset Password</a>
+          <p>This link will expire in 1 hour.</p>
+          <p>If you didn't request this, please ignore this email.</p>
+      `,
   };
 
   await transporter.sendMail(mailOptions);

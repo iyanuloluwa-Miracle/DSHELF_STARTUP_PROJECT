@@ -155,13 +155,12 @@ const verifyEmail = async (req, res) => {
         }
 
         await authService.verifyEmail(token);
-        return res.status(HttpStatus.OK).json(
-            successResponse('Email verified successfully')
-        );
+        
+        // Redirect to the specific login URL you provided
+        res.redirect(`${process.env.FRONTEND_URL}/auth/login?verified=true`);
     } catch (error) {
-        return res.status(HttpStatus.BAD_REQUEST).json(
-            errorResponse(error.message)
-        );
+        // Redirect to login page with error
+        res.redirect(`${process.env.FRONTEND_URL}/auth/login?error=${encodeURIComponent(error.message)}`);
     }
 };
 
