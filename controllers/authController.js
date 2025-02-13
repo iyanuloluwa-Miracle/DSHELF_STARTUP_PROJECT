@@ -1,5 +1,6 @@
 // controllers/authController.js
 const authService = require('../services/authService');
+const User = require('../models/User');
 const { 
     successResponse, 
     errorResponse, 
@@ -112,7 +113,6 @@ const forgotPassword = async (req, res) => {
         );
     }
 };
-
 const resetPassword = async (req, res) => {
     try {
         const { token, newPassword, confirm_password } = req.body;
@@ -129,15 +129,19 @@ const resetPassword = async (req, res) => {
         }
 
         await authService.resetPassword(token, newPassword, confirm_password);
-        return res.status(HttpStatus.OK).json(
-            successResponse('Password reset successful')
-        );
+        
+        // Update to use the new URL format
+        return res.redirect(`${process.env.FRONTEND_URL}/auth/login/reset-password?token=${token}`);
     } catch (error) {
         return res.status(HttpStatus.BAD_REQUEST).json(
             errorResponse(error.message)
         );
     }
 };
+
+
+
+
 
 const verifyEmail = async (req, res) => {
     try {
@@ -163,6 +167,25 @@ const verifyEmail = async (req, res) => {
         res.redirect(`${process.env.FRONTEND_URL}/auth/login?error=${encodeURIComponent(error.message)}`);
     }
 };
+const getProfile = async (req, res) => {
+    try {
+        const user = await User.findById(req.user.userId).select('-password -resetPasswordToken -resetPasswordExpires -verificationToken');
+        
+        if (!user) {
+            return res.status(HttpStatus.NOT_FOUND).json(
+                errorResponse('User not found')
+            );
+        }
+
+        return res.status(HttpStatus.OK).json(
+            successResponse('Profile fetched successfully', { user })
+        );
+    } catch (error) {
+        return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(
+            errorResponse(error.message)
+        );
+    }
+};
 
 module.exports = {
     signup,
@@ -170,5 +193,6 @@ module.exports = {
     logout,
     forgotPassword,
     resetPassword,
-    verifyEmail
+    verifyEmail,
+    getProfile
 };
