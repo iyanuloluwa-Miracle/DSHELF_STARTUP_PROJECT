@@ -59,8 +59,12 @@ exports.sendVerificationEmail = async (user) => {
     throw new Error("Failed to send verification email");
   }
 };
+
 exports.sendResetPasswordEmail = async (email, token) => {
-  const resetUrl = `${process.env.FRONTEND_URL}/auth/login/reset-password/${token}`;
+  console.log('Sending reset email with token:', token);
+  
+  const resetUrl = `${process.env.FRONTEND_URL}/auth/reset-password?token=${token}`;
+  console.log('Reset URL:', resetUrl);
 
   const mailOptions = {
       from: EMAIL_USER,
@@ -73,6 +77,7 @@ exports.sendResetPasswordEmail = async (email, token) => {
           <a href="${resetUrl}">Reset Password</a>
           <p>This link will expire in 1 hour.</p>
           <p>If you didn't request this, please ignore this email.</p>
+          <p>Debug Token: ${token}</p>
       `,
   };
 
