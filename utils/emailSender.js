@@ -77,7 +77,7 @@ exports.sendResetPasswordEmail = async (email, token) => {
           <a href="${resetUrl}">Reset Password</a>
           <p>This link will expire in 1 hour.</p>
           <p>If you didn't request this, please ignore this email.</p>
-          <p>Debug Token: ${token}</p>
+         
       `,
   };
 
