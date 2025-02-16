@@ -30,6 +30,7 @@ app.get('/', async (req, res, next) => {
 });
 
 app.use('/api', require('./routes/api.route'));
+app.use('/api', require('./routes/bookRoutes'));
 
 // Middleware to generate 404 error for undefined routes
 app.use(notFoundHandler);
