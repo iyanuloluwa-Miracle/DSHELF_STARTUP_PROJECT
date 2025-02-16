@@ -75,6 +75,7 @@ const loginUser = async (email, password) => {
     };
 };
 
+
 const initiatePasswordReset = async (email) => {
     const user = await User.findOne({ email });
     if (!user) {
@@ -82,15 +83,13 @@ const initiatePasswordReset = async (email) => {
     }
 
     // Generate plain token for email
-    const plainToken = crypto.randomBytes(32).toString('hex');
-    console.log('Generated plain token:', plainToken);
+    const resetToken = crypto.randomBytes(32).toString('hex');
     
-    // Hash token for storage
+    // Hash token before saving to database
     const hashedToken = crypto
         .createHash('sha256')
-        .update(plainToken)
+        .update(resetToken)
         .digest('hex');
-    console.log('Hashed token for storage:', hashedToken);
 
     // Save the hashed version in database
     user.resetPasswordToken = hashedToken;
@@ -98,20 +97,19 @@ const initiatePasswordReset = async (email) => {
     
     await user.save();
     
-    // Log the user's reset token details after saving
-    console.log('Saved user reset token details:', {
-        hashedToken: user.resetPasswordToken,
-        expires: user.resetPasswordExpires,
-        currentTime: Date.now()
+    // Log for debugging
+    console.log('Token details:', {
+        plainToken: resetToken,
+        hashedTokenInDB: hashedToken,
+        expires: user.resetPasswordExpires
     });
     
     // Send the plain token in the email
-    await sendResetPasswordEmail(user.email, plainToken);
+    await sendResetPasswordEmail(user.email, resetToken);
     return true;
 };
+
 const resetPassword = async (token, newPassword, confirm_password) => {
-    console.log('Received token:', token);
-    
     if (!token) {
         throw new Error('No token provided');
     }
@@ -125,32 +123,38 @@ const resetPassword = async (token, newPassword, confirm_password) => {
         .createHash('sha256')
         .update(token)
         .digest('hex');
-    console.log('Hashed received token:', hashedToken);
 
-    // Find user with matching token
+    // Log for debugging
+    console.log('Reset attempt:', {
+        receivedToken: token,
+        hashedReceivedToken: hashedToken
+    });
+
+    // Find user with matching token that hasn't expired
     const user = await User.findOne({
         resetPasswordToken: hashedToken,
         resetPasswordExpires: { $gt: Date.now() }
     });
 
-    console.log('Found user:', user ? 'Yes' : 'No');
-    if (user) {
-        console.log('Token expiry:', user.resetPasswordExpires);
-        console.log('Current time:', Date.now());
-    }
-
     if (!user) {
-        throw new Error('Invalid or expired token');
+        console.log('User lookup failed:', {
+            tokenMatch: false,
+            currentTime: Date.now(),
+            userFound: false
+        });
+        throw new Error('Invalid or expired password reset token');
     }
 
     // Update password
-    user.password = await bcrypt.hash(newPassword, 12);
-    user.confirm_password = user.password;
+    const hashedPassword = await bcrypt.hash(newPassword, 12);
+    user.password = hashedPassword;
     user.resetPasswordToken = undefined;
     user.resetPasswordExpires = undefined;
+    
     await user.save();
     return true;
 };
+
 
 
 const verifyEmail = async (token) => {

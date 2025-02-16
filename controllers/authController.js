@@ -128,8 +128,9 @@ const resetPassword = async (req, res) => {
 
         await authService.resetPassword(token, newPassword, confirm_password);
         
-        // Update to use the new URL format
-        return res.redirect(`${process.env.FRONTEND_URL}/auth/login/reset-password?token=${token}`);
+        return res.status(HttpStatus.OK).json(
+            successResponse('Password reset successful')
+        );
     } catch (error) {
         return res.status(HttpStatus.BAD_REQUEST).json(
             errorResponse(error.message)
