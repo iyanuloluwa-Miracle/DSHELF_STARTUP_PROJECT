@@ -30,7 +30,7 @@ router.get('/user/profile', authenticate, getProfile);
 
 
 // router.post('/auth/logout', authenticate, logoutValidator, validateRequest, logout);
-// router.get('/auth/verify-email/:token', verifyEmail);
+router.get('/auth/verify-email/:token', verifyEmail);
 
 
 module.exports = router;
