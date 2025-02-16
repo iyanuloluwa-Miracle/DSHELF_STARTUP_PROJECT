@@ -62,17 +62,15 @@ const login = async (req, res) => {
             );
         }
 
-        const { user, token } = await authService.loginUser(email, password);
-        
-        res.cookie('token', token, {
-            httpOnly: true,
-            secure: false, // Change to false for local testing
-            sameSite: 'Lax', // Helps with cross-site cookies
-            maxAge: 24 * 60 * 60 * 1000 // 24 hours
-        });
+        const { user, token, expiresIn } = await authService.loginUser(email, password);
 
         return res.status(HttpStatus.OK).json(
-            successResponse('Login successful', { user, token })
+            successResponse('Login successful', { 
+                user, 
+                token,
+                expiresIn,
+                tokenType: 'Bearer'
+            })
         );
     } catch (error) {
         return res.status(HttpStatus.UNAUTHORIZED).json(
@@ -169,11 +167,19 @@ const verifyEmail = async (req, res) => {
 };
 const getProfile = async (req, res) => {
     try {
-        const user = await User.findById(req.user.userId).select('-password -resetPasswordToken -resetPasswordExpires -verificationToken');
+        const user = await User.findById(req.user.userId)
+            .select('-password -resetPasswordToken -resetPasswordExpires -verificationToken');
         
         if (!user) {
             return res.status(HttpStatus.NOT_FOUND).json(
                 errorResponse('User not found')
+            );
+        }
+
+        // Check if user is verified
+        if (!user.isVerified) {
+            return res.status(HttpStatus.FORBIDDEN).json(
+                errorResponse('Email not verified. Please verify your email.')
             );
         }
 
@@ -186,6 +192,7 @@ const getProfile = async (req, res) => {
         );
     }
 };
+
 
 module.exports = {
     signup,

@@ -35,7 +35,7 @@ const loginUser = async (email, password) => {
     }
 
     if (!user.isVerified) {
-        throw new Error('Email not verified');
+        throw new Error('Email not verified. Please verify your email to login.');
     }
 
     const isValidPassword = await bcrypt.compare(password, user.password);
@@ -48,22 +48,28 @@ const loginUser = async (email, password) => {
     
     const token = jwt.sign(
         { 
-            userId: user._id, 
+            userId: user._id,
             email: user.email,
-            exp: tokenExpiration 
+            firstName: user.firstName,
+            lastName: user.lastName,
+            exp: tokenExpiration
         },
         JWT_SECRET
     );
 
+    // Return user data without sensitive information
+    const userData = {
+        id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        country: user.country,
+        city: user.city,
+        isVerified: user.isVerified
+    };
+
     return { 
-        user: {
-            id: user._id,
-            firstName: user.firstName,
-            lastName: user.lastName,
-            email: user.email,
-            country: user.country,
-            city: user.city
-        }, 
+        user: userData,
         token,
         expiresIn: tokenExpiration
     };
