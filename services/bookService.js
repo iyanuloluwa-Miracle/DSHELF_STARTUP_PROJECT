@@ -1,5 +1,5 @@
 const Book = require('../models/Book');
-const { uploadToCloudinary } = require('../utils/cloudinary');
+const { uploadToCloudinary, deleteFromCloudinary} = require('../utils/cloudinary');
 
 const uploadBookService = async (bookData, files, userId) => {
     console.log("Received files:", files); // Debugging line
