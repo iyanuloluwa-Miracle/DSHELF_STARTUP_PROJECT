@@ -1,4 +1,4 @@
-const { uploadBookService, getBooksService, getBookService } = require('../services/bookService');
+const { uploadBookService, getBooksService, getBookService, deleteBookService,getCategoriesService } = require('../services/bookService');
 const { successResponse, errorResponse, HttpStatus } = require('../helpers/responses');
 
 const uploadBook = async (req, res) => {
