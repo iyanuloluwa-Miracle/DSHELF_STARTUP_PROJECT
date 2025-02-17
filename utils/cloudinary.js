@@ -8,16 +8,23 @@ cloudinary.config({
 });
 
 const uploadToCloudinary = async (file, folder) => {
-    try {
-        const result = await cloudinary.uploader.upload(file.path, {
-            folder: folder,
-            resource_type: folder === 'pdfs' ? 'raw' : 'image'
-        });
-        return result;
-    } catch (error) {
-        throw new Error(`Failed to upload file to Cloudinary: ${error.message}`);
-    }
+    return new Promise((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+            { folder, resource_type: folder === 'pdfs' ? 'raw' : 'image' },
+            (error, result) => {
+                if (error) {
+                    console.error("Cloudinary Upload Error:", error);
+                    reject(new Error(`Failed to upload file to Cloudinary: ${error.message}`));
+                } else {
+                    console.log("Cloudinary Upload Success:", result.secure_url);
+                    resolve(result);
+                }
+            }
+        );
+        uploadStream.end(file.buffer); // Use buffer instead of file.path
+    });
 };
+
 
 const deleteFromCloudinary = async (publicId) => {
     try {

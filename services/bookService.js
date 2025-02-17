@@ -2,6 +2,8 @@ const Book = require('../models/Book');
 const { uploadToCloudinary } = require('../utils/cloudinary');
 
 const uploadBookService = async (bookData, files, userId) => {
+    console.log("Received files:", files); // Debugging line
+
     const {
         name,
         authorName,
@@ -23,38 +25,52 @@ const uploadBookService = async (bookData, files, userId) => {
         throw new Error('PDF file and Main image are required');
     }
 
-    // Upload files to Cloudinary
-    const pdfResult = await uploadToCloudinary(files.pdf[0], 'pdfs');
-    const mainImageResult = await uploadToCloudinary(files.mainImage[0], 'images');
+    try {
+        // Upload PDF file
+        console.log("Uploading PDF file..."); // Debugging line
+        const pdfResult = await uploadToCloudinary(files.pdf[0], 'pdfs');
+        console.log("PDF uploaded successfully:", pdfResult.secure_url); // Debugging line
 
-    let additionalImageUrls = [];
-    if (files.additionalImages) {
-        for (const image of files.additionalImages) {
-            const result = await uploadToCloudinary(image, 'images');
-            additionalImageUrls.push(result.secure_url);
+        // Upload main image
+        console.log("Uploading main image..."); // Debugging line
+        const mainImageResult = await uploadToCloudinary(files.mainImage[0], 'images');
+        console.log("Main image uploaded successfully:", mainImageResult.secure_url); // Debugging line
+
+        // Upload additional images (if any)
+        let additionalImageUrls = [];
+        if (files.additionalImages) {
+            console.log("Uploading additional images..."); // Debugging line
+            for (const image of files.additionalImages) {
+                const result = await uploadToCloudinary(image, 'images');
+                additionalImageUrls.push(result.secure_url);
+                console.log("Additional image uploaded:", result.secure_url); // Debugging line
+            }
         }
+
+        // Create new book/article
+        const book = new Book({
+            name,
+            authorName,
+            price,
+            location,
+            condition,
+            category,
+            format,
+            defects: defects || '',
+            contactLink,
+            description,
+            pdfUrl: pdfResult.secure_url,
+            mainImageUrl: mainImageResult.secure_url,
+            additionalImages: additionalImageUrls,
+            userId
+        });
+
+        await book.save();
+        return book;
+    } catch (error) {
+        console.error("Error uploading files:", error); // Debugging line
+        throw error;
     }
-
-    // Create new book/article
-    const book = new Book({
-        name,
-        authorName,
-        price,
-        location,
-        condition,
-        category,
-        format,
-        defects: defects || '',
-        contactLink,
-        description,
-        pdfUrl: pdfResult.secure_url,
-        mainImageUrl: mainImageResult.secure_url,
-        additionalImages: additionalImageUrls,
-        userId
-    });
-
-    await book.save();
-    return book;
 };
 
 const getBooksService = async (queryParams) => {
