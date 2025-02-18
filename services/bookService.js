@@ -74,9 +74,17 @@ const uploadBookService = async (bookData, files, userId) => {
 };
 
 const getBooksService = async (queryParams) => {
-    const { page = 1, limit = 10, search, category, condition, format } = queryParams;
+    const { 
+        page = 1, 
+        limit = 10, 
+        search, 
+        category, 
+        condition, 
+        format,
+        isSold  // Add this parameter
+    } = queryParams;
+    
     const skip = (page - 1) * limit;
-
     const query = {};
 
     if (search) {
@@ -93,6 +101,11 @@ const getBooksService = async (queryParams) => {
 
     if (format) {
         query.format = format;
+    }
+
+    // Add isSold filter
+    if (isSold !== undefined) {
+        query.isSold = isSold === 'true';
     }
 
     const books = await Book.find(query)

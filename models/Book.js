@@ -29,9 +29,22 @@ const BookSchema = new mongoose.Schema({
     },
     category: {
         type: String,
-        enum: 
-        ['Arts & Photography', 'Children"s Books','Comics & Graphic Novels', 'Cooking & Food', 'Fiction', 'Hobbies & Crafts', 'Past Questions', 'Non-Fiction', 'Poetry & Drama', 'Reference', 'Religion & Spirituality', 'Sports & Outdoors','Tech', 'Textbooks'],
-
+        enum: [
+            'Arts & Photography',
+            'Children\'s Books',
+            'Comics & Graphic Novels',
+            'Cooking & Food',
+            'Fiction',
+            'Hobbies & Crafts',
+            'Past Questions',
+            'Non-Fiction',
+            'Poetry & Drama',
+            'Reference',
+            'Religion & Spirituality',
+            'Sports & Outdoors',
+            'Tech',
+            'Textbooks'
+        ],
         required: [true, 'Category is required']
     },
     format: {
