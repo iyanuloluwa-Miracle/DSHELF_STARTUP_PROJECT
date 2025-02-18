@@ -150,6 +150,26 @@ const updateBookSoldStatusService = async (bookId, userId) => {
     return book;
 };
 
+
+const getUserBooksService = async (userId, queryParams) => {
+    const { page = 1, limit = 10 } = queryParams;
+    const skip = (page - 1) * limit;
+
+    const books = await Book.find({ userId })
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit);
+
+    const total = await Book.countDocuments({ userId });
+
+    return {
+        books,
+        total,
+        page,
+        totalPages: Math.ceil(total / limit)
+    };
+};
+
 module.exports = {
     updateBookSoldStatusService,
     uploadBookService,
@@ -157,5 +177,6 @@ module.exports = {
     getBookService,
     getCategoriesService,
     deleteBookService,
+    getUserBooksService,
 };
 

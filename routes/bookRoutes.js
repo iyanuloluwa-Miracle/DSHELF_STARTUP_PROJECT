@@ -9,11 +9,13 @@ const {
     getCategories,
     deleteBook,
     updateBookSoldStatus,
+    getUserBooks
 } = require('../controllers/bookController');
 
 // Routes
 router.post('/books', authenticate, uploadFields, uploadBook);
 router.get('/books', getBooks);
+router.get('/user/books', authenticate, getUserBooks);
 router.get('/books/:id', getBook);
 router.get('/categories', getCategories);
 router.delete('/books/:id', authenticate, deleteBook);
