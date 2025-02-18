@@ -7,7 +7,8 @@ const {
     getBooks,
     getBook,
     getCategories,
-    deleteBook
+    deleteBook,
+    updateBookSoldStatus,
 } = require('../controllers/bookController');
 
 // Routes
@@ -16,5 +17,6 @@ router.get('/books', getBooks);
 router.get('/books/:id', getBook);
 router.get('/categories', getCategories);
 router.delete('/books/:id', authenticate, deleteBook);
+router.patch('/books/:id/sold', authenticate, updateBookSoldStatus);
 
 module.exports = router;

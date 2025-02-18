@@ -1,4 +1,4 @@
-const { uploadBookService, getBooksService, getBookService, deleteBookService,getCategoriesService } = require('../services/bookService');
+const { uploadBookService, getBooksService, getBookService, deleteBookService,getCategoriesService, updateBookSoldStatusService } = require('../services/bookService');
 const { successResponse, errorResponse, HttpStatus } = require('../helpers/responses');
 
 const uploadBook = async (req, res) => {
@@ -79,7 +79,24 @@ const deleteBook = async (req, res) => {
         });
     }
 };
+
+const updateBookSoldStatus = async (req, res) => {
+    try {
+        const book = await updateBookSoldStatusService(req.params.id, req.user.userId);
+        return res.status(HttpStatus.OK).json({
+            success: true,
+            message: 'Book marked as sold successfully',
+            data: { book }
+        });
+    } catch (error) {
+        return res.status(HttpStatus.BAD_REQUEST).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
 module.exports = {
+    updateBookSoldStatus,
     uploadBook,
     getBooks,
     getBook,

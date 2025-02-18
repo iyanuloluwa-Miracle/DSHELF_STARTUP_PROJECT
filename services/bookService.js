@@ -140,7 +140,18 @@ const deleteBookService = async (bookId) => {
     return book;
 };
 
+const updateBookSoldStatusService = async (bookId, userId) => {
+    const book = await Book.findOne({ _id: bookId, userId });
+    if (!book) {
+        throw new Error('Book not found or you are not authorized');
+    }
+    book.isSold = true;
+    await book.save();
+    return book;
+};
+
 module.exports = {
+    updateBookSoldStatusService,
     uploadBookService,
     getBooksService,
     getBookService,

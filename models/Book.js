@@ -23,6 +23,10 @@ const BookSchema = new mongoose.Schema({
         required: [true, 'Condition is required'],
         enum: ['New', 'Pre owned']
     },
+    isSold: {
+        type: Boolean,
+        default: false
+    },
     category: {
         type: String,
         enum: 
