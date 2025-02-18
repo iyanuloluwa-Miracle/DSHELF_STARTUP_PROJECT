@@ -29,6 +29,18 @@ exports.resetPasswordValidator = [
         .matches(/[A-Z]/).withMessage('Password must contain at least one uppercase letter')
 ];
 
+
+exports.updateProfileValidator = [
+    body('firstName').optional().trim().isLength({ min: 2 })
+        .withMessage('First name must be at least 2 characters long'),
+    body('lastName').optional().trim().isLength({ min: 2 })
+        .withMessage('Last name must be at least 2 characters long'),
+    body('country').optional().trim().notEmpty()
+        .withMessage('Country cannot be empty if provided'),
+    body('city').optional().trim().notEmpty()
+        .withMessage('City cannot be empty if provided')
+];
+
 exports.logoutValidator = [
     body('refreshToken').notEmpty().withMessage('Refresh token is required')
 ];

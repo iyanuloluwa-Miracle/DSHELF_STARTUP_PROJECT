@@ -193,6 +193,45 @@ const getProfile = async (req, res) => {
         );
     }
 };
+const updateProfile = async (req, res) => {
+    try {
+        const { firstName, lastName, country, city } = req.body;
+        
+        const user = await User.findById(req.user.userId);
+        if (!user) {
+            return res.status(HttpStatus.NOT_FOUND).json(
+                errorResponse('User not found')
+            );
+        }
+
+        // Only update fields that are provided
+        if (firstName) user.firstName = firstName;
+        if (lastName) user.lastName = lastName;
+        if (country) user.country = country;
+        if (city) user.city = city;
+
+        await user.save();
+
+        // Return updated user data without sensitive information
+        const updatedUser = {
+            id: user._id,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            email: user.email,
+            country: user.country,
+            city: user.city,
+            isVerified: user.isVerified
+        };
+
+        return res.status(HttpStatus.OK).json(
+            successResponse('Profile updated successfully', { user: updatedUser })
+        );
+    } catch (error) {
+        return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(
+            errorResponse(error.message)
+        );
+    }
+};
 
 
 module.exports = {
@@ -202,5 +241,6 @@ module.exports = {
     forgotPassword,
     resetPassword,
     verifyEmail,
-    getProfile
+    getProfile,
+    updateProfile,
 };
