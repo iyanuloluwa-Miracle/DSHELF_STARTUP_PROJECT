@@ -66,11 +66,15 @@ const BookSchema = new mongoose.Schema({
     },
     pdfUrl: {
         type: String,
-        required: [true, 'PDF file is required']
+        required: function() {
+            return this.format === 'E-book';
+        }
     },
     mainImageUrl: {
         type: String,
-        required: [true, 'Main image is required']
+        required: function() {
+            return this.format === 'Hard Copy';
+        }
     },
     additionalImages: [{
         type: String

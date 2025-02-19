@@ -2,7 +2,7 @@ const Book = require('../models/Book');
 const { uploadToCloudinary, deleteFromCloudinary} = require('../utils/cloudinary');
 
 const uploadBookService = async (bookData, files, userId) => {
-    console.log("Received files:", files); // Debugging line
+    console.log("Received files:", files);
 
     const {
         name,
@@ -21,29 +21,51 @@ const uploadBookService = async (bookData, files, userId) => {
         throw new Error('All required fields must be filled');
     }
 
-    if (!files || !files.pdf || !files.mainImage) {
-        throw new Error('PDF file and Main image are required');
+    // Validate file uploads based on format
+    if (format === 'E-book') {
+        if (!files.pdf) {
+            throw new Error('PDF file is required for E-books');
+        }
+        if (files.mainImage) {
+            throw new Error('Main image should not be uploaded for E-books');
+        }
+    } else if (format === 'Hard Copy') {
+        if (!files.mainImage) {
+            throw new Error('Main image is required for Hard Copy books');
+        }
+        if (files.pdf) {
+            throw new Error('PDF should not be uploaded for Hard Copy books');
+        }
     }
 
     try {
-        // Upload PDF file
-        console.log("Uploading PDF file..."); // Debugging line
-        const pdfResult = await uploadToCloudinary(files.pdf[0], 'pdfs');
-        console.log("PDF uploaded successfully:", pdfResult.secure_url); // Debugging line
+        let pdfUrl = null;
+        let mainImageUrl = null;
+        let additionalImageUrls = [];
 
-        // Upload main image
-        console.log("Uploading main image..."); // Debugging line
-        const mainImageResult = await uploadToCloudinary(files.mainImage[0], 'images');
-        console.log("Main image uploaded successfully:", mainImageResult.secure_url); // Debugging line
+        // Upload PDF for E-books
+        if (format === 'E-book' && files.pdf) {
+            console.log("Uploading PDF file...");
+            const pdfResult = await uploadToCloudinary(files.pdf[0], 'pdfs');
+            pdfUrl = pdfResult.secure_url;
+            console.log("PDF uploaded successfully:", pdfUrl);
+        }
+
+        // Upload main image for Hard Copy books
+        if (format === 'Hard Copy' && files.mainImage) {
+            console.log("Uploading main image...");
+            const mainImageResult = await uploadToCloudinary(files.mainImage[0], 'images');
+            mainImageUrl = mainImageResult.secure_url;
+            console.log("Main image uploaded successfully:", mainImageUrl);
+        }
 
         // Upload additional images (if any)
-        let additionalImageUrls = [];
         if (files.additionalImages) {
-            console.log("Uploading additional images..."); // Debugging line
+            console.log("Uploading additional images...");
             for (const image of files.additionalImages) {
                 const result = await uploadToCloudinary(image, 'images');
                 additionalImageUrls.push(result.secure_url);
-                console.log("Additional image uploaded:", result.secure_url); // Debugging line
+                console.log("Additional image uploaded:", result.secure_url);
             }
         }
 
@@ -59,8 +81,8 @@ const uploadBookService = async (bookData, files, userId) => {
             defects: defects || '',
             contactLink,
             description,
-            pdfUrl: pdfResult.secure_url,
-            mainImageUrl: mainImageResult.secure_url,
+            pdfUrl,
+            mainImageUrl,
             additionalImages: additionalImageUrls,
             userId
         });
@@ -68,7 +90,7 @@ const uploadBookService = async (bookData, files, userId) => {
         await book.save();
         return book;
     } catch (error) {
-        console.error("Error uploading files:", error); // Debugging line
+        console.error("Error uploading files:", error);
         throw error;
     }
 };

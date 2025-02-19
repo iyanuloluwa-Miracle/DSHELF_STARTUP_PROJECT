@@ -11,4 +11,6 @@ const uploadFields = upload.fields([
     { name: 'additionalImages', maxCount: 3 }
 ]);
 
+
+
 module.exports = uploadFields;
