@@ -187,24 +187,67 @@ const updateBookSoldStatusService = async (bookId, userId) => {
 
 
 const getUserBooksService = async (userId, queryParams) => {
-    const { page = 1, limit = 10 } = queryParams;
+    const { 
+        page = 1, 
+        limit = 10,
+        search,
+        category,
+        condition,
+        format,
+        isSold
+    } = queryParams;
+    
     const skip = (page - 1) * limit;
+    const query = { userId }; // Base query with userId
 
-    const books = await Book.find({ userId })
+    // Add search conditions
+    if (search) {
+        query.$or = [
+            { name: { $regex: search, $options: 'i' } },
+            { authorName: { $regex: search, $options: 'i' } },
+            { description: { $regex: search, $options: 'i' } }
+        ];
+    }
+
+    // Add filters
+    if (category) {
+        query.category = category;
+    }
+
+    if (condition) {
+        query.condition = condition;
+    }
+
+    if (format) {
+        query.format = format;
+    }
+
+    if (isSold !== undefined) {
+        query.isSold = isSold === 'true';
+    }
+
+    const books = await Book.find(query)
         .sort({ createdAt: -1 })
         .skip(skip)
-        .limit(limit);
+        .limit(limit)
+        .populate('userId', 'firstName lastName email');
 
-    const total = await Book.countDocuments({ userId });
+    const total = await Book.countDocuments(query);
 
     return {
         books,
         total,
         page,
-        totalPages: Math.ceil(total / limit)
+        totalPages: Math.ceil(total / limit),
+        filters: {
+            search,
+            category,
+            condition,
+            format,
+            isSold
+        }
     };
 };
-
 module.exports = {
     updateBookSoldStatusService,
     uploadBookService,
