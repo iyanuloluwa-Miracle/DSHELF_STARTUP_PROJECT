@@ -9,7 +9,7 @@ const upload = multer({
 const uploadFields = upload.fields([
     { name: 'pdf', maxCount: 1 },
     { name: 'mainImage', maxCount: 1 },
-    { name: 'additionalImages', maxCount: 3 }
+    { name: 'additionalImages', maxCount: 5 } // Allow up to 5 additional images
 ]);
 
 module.exports = uploadFields;

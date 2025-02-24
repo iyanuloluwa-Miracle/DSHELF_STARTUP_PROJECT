@@ -92,9 +92,9 @@ const BookSchema = new mongoose.Schema({
         type: String,
         validate: {
             validator: function(v) {
-                return v && v.length <= 3; // Maximum 3 additional images
+                return v && v.length >= 1; // Maximum 3 additional images
             },
-            message: 'Maximum 3 additional images are allowed'
+            message: 'At least 1 additional image is required'
         }
     }],
     userId: {

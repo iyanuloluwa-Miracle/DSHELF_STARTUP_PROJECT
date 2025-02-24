@@ -24,7 +24,12 @@ const uploadBookService = async (userId, bookData) => {
             additionalImages
         } = bookData;
 
-        // 2. Create new book instance
+        // 2. Validate additional images
+        if (!additionalImages || additionalImages.length < 1) {
+            throw new Error("At least 1 additional image is required");
+        }
+
+        // 3. Create new book instance
         const book = new Book({
             userId,
             name,
@@ -43,10 +48,10 @@ const uploadBookService = async (userId, bookData) => {
             isSold: false
         });
 
-        // 3. Validate the book instance
+        // 4. Validate the book instance
         await book.validate();
 
-        // 4. Save the book
+        // 5. Save the book
         await book.save();
 
         return book;

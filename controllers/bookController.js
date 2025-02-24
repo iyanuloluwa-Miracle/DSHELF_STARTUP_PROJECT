@@ -1,7 +1,6 @@
 const { uploadBookService, getBooksService, getBookService, deleteBookService,getCategoriesService, updateBookSoldStatusService,getUserBooksService } = require('../services/bookService');
 const { successResponse, errorResponse, HttpStatus } = require('../helpers/responses');
 const { uploadToCloudinary, deleteFromCloudinary} = require('../utils/cloudinary');
-
 const uploadBook = async (req, res) => {
     let uploadedFiles = [];
 
@@ -14,7 +13,15 @@ const uploadBook = async (req, res) => {
             });
         }
 
-        // 2. Validate required fields
+        // 2. Validate additional images
+        if (!req.files.additionalImages || req.files.additionalImages.length < 1) {
+            return res.status(HttpStatus.BAD_REQUEST).json({
+                success: false,
+                message: "At least 1 additional image is required"
+            });
+        }
+
+        // 3. Validate required fields
         const requiredFields = ['name', 'authorName', 'price', 'location', 'condition', 'category', 'format', 'description', 'contactLink'];
         const missingFields = requiredFields.filter(field => !req.body[field]);
         
@@ -25,7 +32,7 @@ const uploadBook = async (req, res) => {
             });
         }
 
-        // 3. Process file uploads
+        // 4. Process file uploads
         let pdfUrl = null;
         let mainImageUrl = null;
         let additionalImageUrls = [];
@@ -54,7 +61,7 @@ const uploadBook = async (req, res) => {
             uploadedFiles = uploadedFiles.concat(additionalImageUrls);
         }
 
-        // 4. Validate file combinations based on format
+        // 5. Validate file combinations based on format
         if (req.body.format === 'E-book' && !pdfUrl) {
             throw new Error("PDF file is required for E-book format");
         }
@@ -67,7 +74,7 @@ const uploadBook = async (req, res) => {
             throw new Error("Cannot upload both PDF and images. Choose either E-book or Hard Copy format.");
         }
 
-        // 5. Create book with uploaded files
+        // 6. Create book with uploaded files
         const bookData = {
             ...req.body,
             pdfUrl,
@@ -97,6 +104,8 @@ const uploadBook = async (req, res) => {
         });
     }
 };
+
+
 
 const getBooks = async (req, res) => {
     try {
