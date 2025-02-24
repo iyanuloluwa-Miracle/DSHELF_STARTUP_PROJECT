@@ -1,16 +1,97 @@
 const { uploadBookService, getBooksService, getBookService, deleteBookService,getCategoriesService, updateBookSoldStatusService,getUserBooksService } = require('../services/bookService');
 const { successResponse, errorResponse, HttpStatus } = require('../helpers/responses');
+const { uploadToCloudinary, deleteFromCloudinary} = require('../utils/cloudinary');
 
 const uploadBook = async (req, res) => {
+    let uploadedFiles = [];
+
     try {
-        const book = await uploadBookService(req.body, req.files, req.user.userId);
+        // 1. Validate request
+        if (!req.files || Object.keys(req.files).length === 0) {
+            return res.status(HttpStatus.BAD_REQUEST).json({
+                success: false,
+                message: "No files were uploaded."
+            });
+        }
+
+        // 2. Validate required fields
+        const requiredFields = ['name', 'authorName', 'price', 'location', 'condition', 'category', 'format', 'description', 'contactLink'];
+        const missingFields = requiredFields.filter(field => !req.body[field]);
+        
+        if (missingFields.length > 0) {
+            return res.status(HttpStatus.BAD_REQUEST).json({
+                success: false,
+                message: `Missing required fields: ${missingFields.join(', ')}`
+            });
+        }
+
+        // 3. Process file uploads
+        let pdfUrl = null;
+        let mainImageUrl = null;
+        let additionalImageUrls = [];
+
+        // Handle PDF upload
+        if (req.files.pdf) {
+            const pdfResult = await uploadToCloudinary(req.files.pdf[0], 'pdfs');
+            pdfUrl = pdfResult.secure_url;
+            uploadedFiles.push(pdfUrl);
+        }
+
+        // Handle main image upload
+        if (req.files.mainImage) {
+            const mainImageResult = await uploadToCloudinary(req.files.mainImage[0], 'images');
+            mainImageUrl = mainImageResult.secure_url;
+            uploadedFiles.push(mainImageUrl);
+        }
+
+        // Handle additional images
+        if (req.files.additionalImages) {
+            const uploadPromises = req.files.additionalImages.map(file => 
+                uploadToCloudinary(file, 'images')
+            );
+            const results = await Promise.all(uploadPromises);
+            additionalImageUrls = results.map(result => result.secure_url);
+            uploadedFiles = uploadedFiles.concat(additionalImageUrls);
+        }
+
+        // 4. Validate file combinations based on format
+        if (req.body.format === 'E-book' && !pdfUrl) {
+            throw new Error("PDF file is required for E-book format");
+        }
+
+        if (req.body.format === 'Hard Copy' && !mainImageUrl) {
+            throw new Error("Main image is required for Hard Copy format");
+        }
+
+        if (pdfUrl && mainImageUrl) {
+            throw new Error("Cannot upload both PDF and images. Choose either E-book or Hard Copy format.");
+        }
+
+        // 5. Create book with uploaded files
+        const bookData = {
+            ...req.body,
+            pdfUrl,
+            mainImageUrl,
+            additionalImages: additionalImageUrls
+        };
+
+        const book = await uploadBookService(req.user.userId, bookData);
+
         return res.status(HttpStatus.CREATED).json({
             success: true,
-            message: 'Book/Article uploaded successfully',
-            data: { book }
+            message: "Book uploaded successfully",
+            data: book
         });
+
     } catch (error) {
-        return res.status(HttpStatus.BAD_REQUEST).json({
+        // Clean up uploaded files if there's an error
+        try {
+            await Promise.all(uploadedFiles.map(file => deleteFromCloudinary(file)));
+        } catch (cleanupError) {
+            console.error('Error during file cleanup:', cleanupError);
+        }
+
+        return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
             success: false,
             message: error.message
         });

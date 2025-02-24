@@ -13,7 +13,7 @@ const {
 } = require('../controllers/bookController');
 
 // Routes
-router.post('/books', authenticate, uploadFields, uploadBook);
+router.post('/books/upload', authenticate, uploadFields,uploadBook);
 router.get('/books', getBooks);
 router.get('/user/books', authenticate, getUserBooks);
 router.get('/books/:id', getBook);

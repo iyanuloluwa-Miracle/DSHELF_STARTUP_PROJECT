@@ -25,7 +25,6 @@ const uploadToCloudinary = async (file, folder) => {
     });
 };
 
-
 const deleteFromCloudinary = async (publicId) => {
     try {
         const result = await cloudinary.uploader.destroy(publicId);

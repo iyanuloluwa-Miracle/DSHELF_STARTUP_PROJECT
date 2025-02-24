@@ -1,83 +1,101 @@
-// models/Book.js
 const mongoose = require('mongoose');
 
 const BookSchema = new mongoose.Schema({
     name: {
         type: String,
-        required: [true, 'Book/Article name is required']
+        required: [true, 'Book/Article name is required'],
+        trim: true
     },
     authorName: {
         type: String,
-        required: [true, 'Author name is required']
+        required: [true, 'Author name is required'],
+        trim: true
     },
     price: {
-        type: String,
-        required: [true, 'Price is required']
+        type: Number, // Changed from String to Number for better data handling
+        required: [true, 'Price is required'],
+        min: [0, 'Price cannot be negative']
     },
     location: {
         type: String,
-        required: [true, 'Location is required']
+        required: [true, 'Location is required'],
+        trim: true
     },
     condition: {
         type: String,
         required: [true, 'Condition is required'],
-        enum: ['New', 'Pre owned']
+        enum: {
+            values: ['New', 'Pre owned'],
+            message: '{VALUE} is not a valid condition'
+        }
     },
     isSold: {
         type: Boolean,
-        default: false
+        default: false,
+        required: true
     },
     category: {
         type: String,
-        enum: [
-            'Arts & Photography',
-            'Children\'s Books',
-            'Comics & Graphic Novels',
-            'Cooking & Food',
-            'Fiction',
-            'Hobbies & Crafts',
-            'Past Questions',
-            'Non-Fiction',
-            'Poetry & Drama',
-            'Reference',
-            'Religion & Spirituality',
-            'Sports & Outdoors',
-            'Tech',
-            'Textbooks'
-        ],
+        enum: {
+            values: [
+                'Arts & Photography',
+                'Children\'s Books',
+                'Comics & Graphic Novels',
+                'Cooking & Food',
+                'Fiction',
+                'Hobbies & Crafts',
+                'Past Questions',
+                'Non-Fiction',
+                'Poetry & Drama',
+                'Reference',
+                'Religion & Spirituality',
+                'Sports & Outdoors',
+                'Tech',
+                'Textbooks'
+            ],
+            message: '{VALUE} is not a valid category'
+        },
         required: [true, 'Category is required']
     },
     format: {
         type: String,
-        enum: ['Hard Copy', 'E-book'],
+        enum: {
+            values: ['Hard Copy', 'E-book'],
+            message: '{VALUE} is not a valid format'
+        },
         required: [true, 'Format is required']
     },
     defects: {
         type: String,
-        default: ''
+        default: '',
+        trim: true
     },
     contactLink: {
         type: String,
-        required: [true, 'Contact link is required']
+        required: [true, 'Contact link is required'],
+        trim: true
     },
     description: {
         type: String,
-        required: [true, 'Description is required']
+        required: [true, 'Description is required'],
+        trim: true,
+        minlength: [10, 'Description must be at least 10 characters long']
     },
     pdfUrl: {
         type: String,
-        required: function() {
-            return this.format === 'E-book';
-        }
+
     },
     mainImageUrl: {
         type: String,
-        required: function() {
-            return this.format === 'Hard Copy';
-        }
     },
     additionalImages: [{
-        type: String
+        type: String,
+        validate: {
+            validator: function(v) {
+                return v && v.length <= 3; // Maximum 3 additional images
+            },
+            message: 'Maximum 3 additional images are allowed'
+        }
     }],
     userId: {
         type: mongoose.Schema.Types.ObjectId,
@@ -86,8 +104,16 @@ const BookSchema = new mongoose.Schema({
     },
     createdAt: {
         type: Date,
-        default: Date.now
+        default: Date.now,
+        required: true
     }
 });
+
+// Add indexes for better query performance
+BookSchema.index({ name: 1 });
+BookSchema.index({ category: 1 });
+BookSchema.index({ format: 1 });
+BookSchema.index({ userId: 1 });
+BookSchema.index({ createdAt: -1 });
 
 module.exports = mongoose.model('Book', BookSchema);

@@ -1,76 +1,14 @@
 const Book = require('../models/Book');
 const { uploadToCloudinary, deleteFromCloudinary} = require('../utils/cloudinary');
 
-const uploadBookService = async (bookData, files, userId) => {
-    console.log("Received files:", files);
 
-    const {
-        name,
-        authorName,
-        price,
-        location,
-        condition,
-        category,
-        format,
-        defects,
-        contactLink,
-        description
-    } = bookData;
 
-    if (!name || !authorName || !price || !location || !condition || !category || !format || !contactLink || !description) {
-        throw new Error('All required fields must be filled');
-    }
 
-    // Validate file uploads based on format
-    if (format === 'E-book') {
-        if (!files.pdf) {
-            throw new Error('PDF file is required for E-books');
-        }
-        if (files.mainImage) {
-            throw new Error('Main image should not be uploaded for E-books');
-        }
-    } else if (format === 'Hard Copy') {
-        if (!files.mainImage) {
-            throw new Error('Main image is required for Hard Copy books');
-        }
-        if (files.pdf) {
-            throw new Error('PDF should not be uploaded for Hard Copy books');
-        }
-    }
 
+const uploadBookService = async (userId, bookData) => {
     try {
-        let pdfUrl = null;
-        let mainImageUrl = null;
-        let additionalImageUrls = [];
-
-        // Upload PDF for E-books
-        if (format === 'E-book' && files.pdf) {
-            console.log("Uploading PDF file...");
-            const pdfResult = await uploadToCloudinary(files.pdf[0], 'pdfs');
-            pdfUrl = pdfResult.secure_url;
-            console.log("PDF uploaded successfully:", pdfUrl);
-        }
-
-        // Upload main image for Hard Copy books
-        if (format === 'Hard Copy' && files.mainImage) {
-            console.log("Uploading main image...");
-            const mainImageResult = await uploadToCloudinary(files.mainImage[0], 'images');
-            mainImageUrl = mainImageResult.secure_url;
-            console.log("Main image uploaded successfully:", mainImageUrl);
-        }
-
-        // Upload additional images (if any)
-        if (files.additionalImages) {
-            console.log("Uploading additional images...");
-            for (const image of files.additionalImages) {
-                const result = await uploadToCloudinary(image, 'images');
-                additionalImageUrls.push(result.secure_url);
-                console.log("Additional image uploaded:", result.secure_url);
-            }
-        }
-
-        // Create new book/article
-        const book = new Book({
+        // 1. Extract and validate book data
+        const {
             name,
             authorName,
             price,
@@ -78,19 +16,48 @@ const uploadBookService = async (bookData, files, userId) => {
             condition,
             category,
             format,
-            defects: defects || '',
-            contactLink,
             description,
+            contactLink,
+            defects,
             pdfUrl,
             mainImageUrl,
-            additionalImages: additionalImageUrls,
-            userId
+            additionalImages
+        } = bookData;
+
+        // 2. Create new book instance
+        const book = new Book({
+            userId,
+            name,
+            authorName,
+            price: Number(price),
+            location,
+            condition,
+            category,
+            format,
+            description,
+            contactLink,
+            defects: defects || '',
+            pdfUrl: pdfUrl || null,
+            mainImageUrl: mainImageUrl || null,
+            additionalImages: additionalImages || [],
+            isSold: false
         });
 
+        // 3. Validate the book instance
+        await book.validate();
+
+        // 4. Save the book
         await book.save();
+
         return book;
+
     } catch (error) {
-        console.error("Error uploading files:", error);
+        // Handle mongoose validation errors
+        if (error.name === 'ValidationError') {
+            const messages = Object.values(error.errors).map(err => err.message);
+            throw new Error(`Validation error: ${messages.join(', ')}`);
+        }
+        
         throw error;
     }
 };
