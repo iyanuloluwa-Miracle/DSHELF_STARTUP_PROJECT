@@ -12,14 +12,35 @@ const {
 require('dotenv').config();
 
 const app = express();
+// Define allowed origin patterns
+const allowedOriginPatterns = [
+  /http:\/\/localhost:3000$/,
+  /http:\/\/localhost:5173$/,
+  /^https:\/\/dshelf-rust\.vercel\.app/,  // Replace with your hosted frontend
+];
 
+// Configure CORS options with pattern matching
+const corsOptions = {
+  origin: (origin, callback) => {
+    // Check if the origin matches any of the patterns
+    if (
+      !origin ||
+      allowedOriginPatterns.some((pattern) => pattern.test(origin))
+    ) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true,
+};
 
 
 // Connect to MongoDB
 connectDB();
 
 // Middleware
-app.use(cors());
+app.use(cors(corsOptions));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
