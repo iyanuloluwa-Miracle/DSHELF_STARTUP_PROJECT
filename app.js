@@ -8,40 +8,44 @@ const {
   errorHandler,
 } = require("./middlewares/errorHandler");
 
-
 require('dotenv').config();
 
 const app = express();
-// Define allowed origin patterns
-const allowedOriginPatterns = [
-  /http:\/\/localhost:3000$/,
-  /http:\/\/localhost:5173$/,
-  /^https:\/\/dshelf-rust\.vercel\.app/,  // Replace with your hosted frontend
+
+// Define allowed origins explicitly
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:5173',
+  'https://dshelf-rust.vercel.app'
 ];
 
-// Configure CORS options with pattern matching
+// Configure CORS options
 const corsOptions = {
-  origin: (origin, callback) => {
-    // Check if the origin matches any of the patterns
-    if (
-      !origin ||
-      allowedOriginPatterns.some((pattern) => pattern.test(origin))
-    ) {
+  origin: function(origin, callback) {
+    // Allow requests with no origin (like mobile apps, curl requests)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
-      callback(new Error("Not allowed by CORS"));
+      callback(new Error('Not allowed by CORS'));
     }
   },
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 };
-
 
 // Connect to MongoDB
 connectDB();
 
-// Middleware
+// Apply CORS middleware before any routes
 app.use(cors(corsOptions));
 
+// Handle preflight requests for all routes
+app.options('*', cors(corsOptions));
+
+// Other middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(morgan('dev'));
