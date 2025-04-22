@@ -12,7 +12,6 @@ require('dotenv').config();
 
 const app = express();
 
-// Define allowed origins explicitly
 const allowedOrigins = new Set([
   'http://localhost:3000',
   'http://localhost:5173',
@@ -21,13 +20,9 @@ const allowedOrigins = new Set([
   'https://www.dshelf.store'
 ]);
 
-// Configure CORS options
 const corsOptions = {
   origin: function(origin, callback) {
-    // Allow requests with no origin (like mobile apps, curl requests)
-    if (!origin) return callback(null, true);
-    
-    if (allowedOrigins.indexOf(origin) !== -1) {
+    if (!origin || allowedOrigins.has(origin)) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
@@ -41,11 +36,9 @@ const corsOptions = {
 // Connect to MongoDB
 connectDB();
 
-// Apply CORS middleware before any routes
 app.use(cors(corsOptions));
-
-// Handle preflight requests for all routes
 app.options('*', cors(corsOptions));
+
 
 // Other middleware
 app.use(express.json());
