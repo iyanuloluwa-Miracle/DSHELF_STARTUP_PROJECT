@@ -13,12 +13,13 @@ require('dotenv').config();
 const app = express();
 
 // Define allowed origins explicitly
-const allowedOrigins = [
+const allowedOrigins = new Set([
   'http://localhost:3000',
   'http://localhost:5173',
   'https://dshelf-rust.vercel.app',
-  'https://dshelf.store/'
-];
+  'https://dshelf.store',
+  'https://www.dshelf.store'
+]);
 
 // Configure CORS options
 const corsOptions = {
