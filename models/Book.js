@@ -51,7 +51,25 @@ const BookSchema = new mongoose.Schema({
                 'Religion & Spirituality',
                 'Sports & Outdoors',
                 'Tech',
-                'Textbooks'
+                'Textbooks',
+                'Faculty of Engineering',
+                'Faculty of Science',
+                'Faculty of Education',
+                'Faculty of Arts',
+                'Faculty of Law',
+                'Faculty of Agriculture',
+                'Faculty of Medicine',
+                'Faculty of Pharmacy',
+                'Faculty of Health Sciences',
+                'Faculty of Technology',
+                'Faculty of Communication',
+                'Faculty of Sciences',
+                'Faculty of Management Sciences',
+                'Faculty of Social Sciences',
+                'Faculty of Veterinary Medicine',
+            
+
+
             ],
             message: '{VALUE} is not a valid category'
         },
