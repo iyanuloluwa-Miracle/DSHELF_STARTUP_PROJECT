@@ -105,7 +105,7 @@ const initiatePasswordReset = async (email) => {
     });
     
     // Send the plain token in the email
-    await sendResetPasswordEmail(user.email, resetToken);
+    await sendResetPasswordEmail(user, resetToken);
     return true;
 };
 

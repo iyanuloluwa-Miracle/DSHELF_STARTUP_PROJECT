@@ -51,7 +51,7 @@ app.get('/', async (req, res, next) => {
 
 // Mount routes with their specific prefixes
 app.use('/api/auth', require('./routes/api.route'));
-app.use('/api/books', require('./routes/bookRoutes'));
+app.use('/api', require('./routes/bookRoutes'));
 
 // Middleware to generate 404 error for undefined routes
 app.use(notFoundHandler);

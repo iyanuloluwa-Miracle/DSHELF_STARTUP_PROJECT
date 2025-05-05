@@ -33,12 +33,20 @@ router.post(
   validateRequest,
   forgotPassword
 );
+
+// Reset password routes
+router.get("/reset-password/:token", (req, res) => {
+  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+  res.redirect(`${frontendUrl}/auth/reset-password?token=${req.params.token}`);
+});
+
 router.post(
   "/reset-password",
   resetPasswordValidator,
   validateRequest,
   resetPassword
 );
+
 router.get("/user/profile", authenticate, getProfile);
 router.patch(
   "/user/profile",

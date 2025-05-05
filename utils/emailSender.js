@@ -75,16 +75,9 @@ exports.sendVerificationEmail = async (user) => {
   }
 };
 
-exports.sendResetPasswordEmail = async (user) => {
+exports.sendResetPasswordEmail = async (user, plainToken) => {
   try {
-    const resetToken = require("crypto").randomBytes(32).toString("hex");
-
-    // Update user with reset token and expiration
-    user.resetPasswordToken = resetToken;
-    user.resetPasswordExpires = Date.now() + 3600000; // 1 hour from now
-    await user.save();
-
-    const resetUrl = `${BASE_URL}/reset-password/${resetToken}`;
+    const resetUrl = `${BASE_URL}/api/auth/reset-password/${plainToken}`;
 
     const mailOptions = {
       from: EMAIL_USER,
