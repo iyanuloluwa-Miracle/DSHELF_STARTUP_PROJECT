@@ -7,6 +7,7 @@ const {
     validationErrorResponse,
     HttpStatus 
 } = require('../helpers/responses');
+const { sendVerificationEmail } = require('../utils/emailSender');
 
 const signup = async (req, res) => {
     try {
@@ -138,10 +139,6 @@ const resetPassword = async (req, res) => {
     }
 };
 
-
-
-
-
 const verifyEmail = async (req, res) => {
     try {
         const { token } = req.params;
@@ -233,6 +230,25 @@ const updateProfile = async (req, res) => {
     }
 };
 
+const resendVerification = async (req, res) => {
+    try {
+        const { email } = req.body;
+        if (!email) {
+            return res.status(400).json({ success: false, message: "Email is required" });
+        }
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found" });
+        }
+        if (user.isVerified) {
+            return res.status(400).json({ success: false, message: "Email already verified" });
+        }
+        await sendVerificationEmail(user);
+        return res.status(200).json({ success: true, message: "Verification email resent" });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: error.message });
+    }
+};
 
 module.exports = {
     signup,
@@ -243,4 +259,5 @@ module.exports = {
     verifyEmail,
     getProfile,
     updateProfile,
+    resendVerification,
 };

@@ -13,7 +13,7 @@ const uploadToCloudinary = async (file, folder) => {
             folder,
             resource_type: folder === 'pdfs' ? 'raw' : 'image'
         };
-        
+        N
         // Add specific options for PDFs
         if (folder === 'pdfs') {
             uploadOptions = {

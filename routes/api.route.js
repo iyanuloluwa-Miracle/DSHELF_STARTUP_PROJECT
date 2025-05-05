@@ -18,6 +18,7 @@ const {
   verifyEmail,
   getProfile,
   updateProfile,
+  resendVerification,
 } = require("../controllers/authController");
 
 // Health check
@@ -48,5 +49,6 @@ router.patch(
 
 // router.post('/auth/logout', authenticate, logoutValidator, validateRequest, logout);
 router.get("/auth/verify-email/:token", verifyEmail);
+router.post("/auth/resend-verification", resendVerification);
 
 module.exports = router;
