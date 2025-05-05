@@ -156,11 +156,13 @@ const verifyEmail = async (req, res) => {
 
         await authService.verifyEmail(token);
         
-        // Redirect to the specific login URL you provided
-        res.redirect(`${process.env.FRONTEND_URL}/auth/login?verified=true`);
+        // Redirect to the frontend URL with success parameter
+        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+        res.redirect(`${frontendUrl}/auth/login?verified=true`);
     } catch (error) {
-        // Redirect to login page with error
-        res.redirect(`${process.env.FRONTEND_URL}/auth/login?error=${encodeURIComponent(error.message)}`);
+        // Redirect to frontend with error
+        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+        res.redirect(`${frontendUrl}/auth/login?error=${encodeURIComponent(error.message)}`);
     }
 };
 const getProfile = async (req, res) => {

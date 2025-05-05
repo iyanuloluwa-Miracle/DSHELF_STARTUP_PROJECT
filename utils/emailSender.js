@@ -37,7 +37,8 @@ exports.sendVerificationEmail = async (user) => {
     user.verificationToken = verificationToken;
     await user.save();
 
-    const verificationUrl = `${BASE_URL}/auth/verify-email/${verificationToken}`;
+    // Use the API endpoint for verification
+    const verificationUrl = `${BASE_URL}/api/auth/verify-email/${verificationToken}`;
 
     const mailOptions = {
       from: EMAIL_USER,
