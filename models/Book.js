@@ -14,7 +14,8 @@ const BookSchema = new mongoose.Schema({
     price: {
         type: Number, // Changed from String to Number for better data handling
         required: [true, 'Price is required'],
-        min: [0, 'Price cannot be negative']
+        min: [0, 'Price cannot be negative'],
+        max: [1000000, 'Price cannot exceed 1,000,000']
     },
     location: {
         type: String,

@@ -23,6 +23,18 @@ const uploadBookService = async (userId, bookData) => {
       additionalImages,
     } = bookData;
 
+    // Enhanced price validation
+    const priceNumber = Number(price);
+    if (!price || isNaN(priceNumber)) {
+      throw new Error("Invalid price value. Price must be a valid number.");
+    }
+    if (priceNumber < 0) {
+      throw new Error("Price cannot be negative.");
+    }
+    if (priceNumber > 1000000) {
+      throw new Error("Price cannot exceed 1,000,000.");
+    }
+
     // 2. Validate additional images
     if (!additionalImages || additionalImages.length < 1) {
       throw new Error("At least 1 additional image is required");
@@ -33,7 +45,7 @@ const uploadBookService = async (userId, bookData) => {
       userId,
       name,
       authorName,
-      price: Number(price),
+      price: priceNumber,
       location,
       condition,
       category,
