@@ -30,20 +30,33 @@ const corsOptions = {
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+  allowedHeaders: [
+    'Content-Type', 
+    'Authorization', 
+    'X-Requested-With',
+    'Accept',
+    'Origin',
+    'Access-Control-Allow-Origin',
+    'Access-Control-Allow-Headers',
+    'Access-Control-Allow-Methods'
+  ],
+  exposedHeaders: ['Authorization'],
+  maxAge: 86400 // 24 hours
 };
 
 // Connect to MongoDB
 connectDB();
 
+// Apply CORS before other middleware
 app.use(cors(corsOptions));
-app.options('*', cors(corsOptions));
 
+// Handle preflight requests
+app.options('*', cors(corsOptions));
 
 // Other middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(morgan('dev'));
+app.use(morgan('dev')); // Add logging
 
 app.get('/', async (req, res, next) => {
   res.send({ message: 'API is working 🚀' });
