@@ -97,7 +97,12 @@ const uploadBook = async (req, res) => {
         } catch (cleanupError) {
             console.error('Error during file cleanup:', cleanupError);
         }
-
+        console.error('Error in uploadBook controller:', {
+            error: error,
+            stack: error.stack,
+            location: 'controllers/bookController.js:uploadBook',
+            timestamp: new Date().toISOString()
+        });
         return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
             success: false,
             message: error.message
@@ -116,6 +121,12 @@ const getBooks = async (req, res) => {
             data: result
         });
     } catch (error) {
+        console.error('Error in getBooks controller:', {
+            error: error,
+            stack: error.stack,
+            location: 'controllers/bookController.js:getBooks',
+            timestamp: new Date().toISOString()
+        });
         return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
             success: false,
             message: error.message
@@ -131,6 +142,12 @@ const getBook = async (req, res) => {
             data: { book }
         });
     } catch (error) {
+        console.error('Error in getBook controller:', {
+            error: error,
+            stack: error.stack,
+            location: 'controllers/bookController.js:getBook',
+            timestamp: new Date().toISOString()
+        });
         return res.status(HttpStatus.NOT_FOUND).json({
             success: false,
             message: error.message
@@ -148,6 +165,12 @@ const getCategories = async (req, res) => {
             data: { categories }
         });
     } catch (error) {
+        console.error('Error in getCategories controller:', {
+            error: error,
+            stack: error.stack,
+            location: 'controllers/bookController.js:getCategories',
+            timestamp: new Date().toISOString()
+        });
         return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
             success: false,
             message: error.message
@@ -163,6 +186,12 @@ const deleteBook = async (req, res) => {
             message: 'Book deleted successfully'
         });
     } catch (error) {
+        console.error('Error in deleteBook controller:', {
+            error: error,
+            stack: error.stack,
+            location: 'controllers/bookController.js:deleteBook',
+            timestamp: new Date().toISOString()
+        });
         return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
             success: false,
             message: error.message
@@ -179,6 +208,12 @@ const updateBookSoldStatus = async (req, res) => {
             data: { book }
         });
     } catch (error) {
+        console.error('Error in updateBookSoldStatus controller:', {
+            error: error,
+            stack: error.stack,
+            location: 'controllers/bookController.js:updateBookSoldStatus',
+            timestamp: new Date().toISOString()
+        });
         return res.status(HttpStatus.BAD_REQUEST).json({
             success: false,
             message: error.message
@@ -195,6 +230,12 @@ const getUserBooks = async (req, res) => {
             data: result
         });
     } catch (error) {
+        console.error('Error in getUserBooks controller:', {
+            error: error,
+            stack: error.stack,
+            location: 'controllers/bookController.js:getUserBooks',
+            timestamp: new Date().toISOString()
+        });
         return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
             success: false,
             message: error.message

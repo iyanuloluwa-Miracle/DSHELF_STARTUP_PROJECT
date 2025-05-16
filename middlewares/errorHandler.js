@@ -9,9 +9,25 @@ const notFoundHandler = (req, res, next) => {
 
 // Error handling middleware
 const errorHandler = (err, req, res, next) => {
-  res.status(err.status || 500);
+  const status = err.status || 500;
+  
+  // Log error details
+  console.error('Global error handler caught:', {
+    error: err,
+    stack: err.stack,
+    location: 'middlewares/errorHandler.js:errorHandler',
+    timestamp: new Date().toISOString(),
+    path: req.path,
+    method: req.method,
+    body: req.body,
+    query: req.query,
+    params: req.params,
+    headers: req.headers
+  });
+
+  res.status(status);
   res.send({
-    status: err.status || 500,
+    status: status,
     message: err.message,
   });
 };

@@ -1,7 +1,7 @@
 // routes/bookRoutes.js
 const router = require('express').Router();
 const { authenticate } = require('../middlewares/authMiddleware');
-const uploadFields = require('../middlewares/upload');
+const { uploadFields, handleMulterError } = require('../middlewares/upload');
 const {
     uploadBook,
     getBooks,
@@ -13,7 +13,7 @@ const {
 } = require('../controllers/bookController');
 
 // Routes
-router.post('/books/upload', authenticate, uploadFields,uploadBook);
+router.post('/books/upload', authenticate, uploadFields, handleMulterError, uploadBook);
 router.get('/books', getBooks);
 router.get('/user/books', authenticate, getUserBooks);
 router.get('/books/:id', getBook);
